@@ -38,6 +38,10 @@ This project addresses the **CredTech Hackathon (IIT Kanpur)** challenge: buildi
 - No LLM reliance.
 
 ### 7. Run Locally
+# Clone Repository
+git clone https://github.com/chillakalyan/CredTech-Hackathon-Project.git
+cd CredTech-Hackathon-Project
+
 # Install required Python packages
 pip install -r requirements.txt
 
@@ -48,5 +52,13 @@ python -m textblob.download_corpora
 streamlit run src/app.py
 
 ### 8. Docker
+pending 
 
+### 9. Testing
+pending
+
+### 10. Trade-offs & Alternatives
+pending
+
+### 11.Roadmap
 
