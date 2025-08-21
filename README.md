@@ -38,7 +38,15 @@ This project addresses the **CredTech Hackathon (IIT Kanpur)** challenge: buildi
 - No LLM reliance.
 
 ### 7. Run Locally
-```bash
+# Install required Python packages
+pip install -r requirements.txt
+
+# Download TextBlob corpora for sentiment analysis
 python -m textblob.download_corpora
+
+# Launch the Streamlit dashboard
 streamlit run src/app.py
+
+### 8. Docker
+
 
