@@ -62,3 +62,42 @@ pending
 
 ### 11.Roadmap
 
+
+## 📂 Repo Structure
+
+```bash
+cred-intel/
+├── src/
+│   ├── ingest/
+│   │   ├── yfin.py              # Yahoo Finance fetch
+│   │   ├── fred.py              # Macro data (FRED + World Bank)
+│   │   ├── rss.py               # News + sentiment + event tags
+│   ├── features/
+│   │   └── build_features.py    # Normalization, winsorize, joins
+│   ├── model/
+│   │   ├── scorecard.py         # Interpretable scoring
+│   │   ├── tree_model.py        # Optional decision tree + SHAP utils
+│   │   └── explain.py           # SHAP + event deltas → text
+│   ├── utils/
+│   │   ├── cache.py             # Last good value, staleness
+│   │   ├── retry.py             # Retry/backoff
+│   │   └── config.py            # API keys, refresh interval
+│   ├── app.py                   # Streamlit dashboard (main entry)
+│   └── pipeline.py              # Fetch-all-sources aggregator
+│
+├── data/
+│   ├── snapshots/               # Parquet snapshots by timestamp
+│   └── demo.csv                 # Small demo to run offline
+│
+├── tests/
+│   ├── test_ingest.py
+│   ├── test_features.py
+│   └── test_scorecard.py
+│
+├── Dockerfile                   # Container spec
+├── requirements.txt             # Dependencies
+├── README.md                    # Documentation
+├── PRESENTATION.pdf             # Submission deck
+└── run.sh                       # Helper script (docker run)
+
+
