@@ -1,4 +1,4 @@
-import os, time, json, math, datetime, urllib.parse, re
+import os, math, datetime, urllib.parse
 from typing import Dict, Any, List
 import pandas as pd
 import numpy as np
@@ -6,14 +6,12 @@ import yfinance as yf
 import feedparser
 from textblob import TextBlob
 from ratelimit import limits, sleep_and_retry
-from bs4 import BeautifulSoup
 import requests
 import streamlit as st
 
 # -------------------------------
 # 0️⃣ Set API keys
 # -------------------------------
-MY_API_KEY = "579b464db66ec23bdd0000016b699a9bd8da4d0e5653cc18839f110d"  # MCA API key
 os.environ["ALPHAVANTAGE_API_KEY"] = "NJSOJQKBF4BHH7Y6"
 os.environ["SEC_USER_AGENT"] = "chillakalyan78@gmail.com HackathonApp/1.0"
 ALPHAVANTAGE_API_KEY = os.getenv("ALPHAVANTAGE_API_KEY")
@@ -23,10 +21,10 @@ SEC_UA = os.getenv("SEC_USER_AGENT")
 # 1️⃣ Company metadata
 # -------------------------------
 COMPANIES = {
-    "INFY.NS": {"name": "Infosys", "adr": "INFY", "cin": "L85110KA1981PLC013115"},
-    "RELIANCE.NS": {"name": "Reliance Industries", "adr": None, "cin": "L17110MH1973PLC019786"},
-    "HDFCBANK.NS": {"name": "HDFC Bank", "adr": "HDB", "cin": "L65920MH1994PLC080618"},
-    "TCS.NS": {"name": "Tata Consultancy Services", "adr": None, "cin": "L22210MH1995PLC084781"},
+    "INFY.NS": {"name": "Infosys", "adr": "INFY"},
+    "RELIANCE.NS": {"name": "Reliance Industries", "adr": None},
+    "HDFCBANK.NS": {"name": "HDFC Bank", "adr": "HDB"},
+    "TCS.NS": {"name": "Tata Consultancy Services", "adr": None},
 }
 
 # -------------------------------
@@ -61,7 +59,7 @@ def get_financials_yahoo(ticker_ns: str) -> Dict[str, Any]:
         return {"Ticker": ticker_ns, "MarketCap": 0, "PE_Ratio": 0, "DebtToEquity": 0, "ProfitMargins": 0}
 
 # -------------------------------
-# 4️⃣ World Bank Macro (skip pandas-datareader to avoid distutils error)
+# 4️⃣ World Bank Macro
 # -------------------------------
 def get_macro_worldbank(country_code="IND") -> Dict[str, Any]:
     out = {}
@@ -126,29 +124,7 @@ def get_sec_recent_filings(ticker_or_adr: str) -> Dict[str, Any]:
     except: return {"SEC_used": True, "SEC_recent_180d": 0, "SEC_recent_forms": []}
 
 # -------------------------------
-# 7️⃣ MCA API
-# -------------------------------
-def get_mca_data(cin: str) -> Dict[str, Any]:
-    try:
-        url = f"https://apisetu.gov.in/api/mca/companies/{cin}"
-        res = requests.get(url, timeout=15)
-        if res.status_code == 200:
-            j = res.json()
-            return {
-                "MCA_used": True,
-                "MCA_CompanyName": j.get("companyName"),
-                "MCA_Status": j.get("companyStatus"),
-                "MCA_Class": j.get("companyClass"),
-                "MCA_Category": j.get("companyCategory"),
-                "MCA_SubCategory": j.get("companySubCategory"),
-                "MCA_PaidUpCapital": j.get("paidUpCapital"),
-                "MCA_DateIncorp": j.get("dateOfIncorporation")
-            }
-        else: return {"MCA_used": False, "MCA_error": f"HTTP {res.status_code}"}
-    except: return {"MCA_used": False, "MCA_error": "Request failed"}
-
-# -------------------------------
-# 8️⃣ News & PR
+# 7️⃣ News & PR
 # -------------------------------
 def get_news_sentiment(company: str, max_items=10) -> Dict[str, Any]:
     try:
@@ -188,14 +164,13 @@ def compute_score(data: Dict[str, Any]) -> Dict[str, Any]:
 # -------------------------------
 # Aggregator
 # -------------------------------
-def fetch_all_sources(ticker_ns: str, meta: Dict[str, Any], api_key: str = MY_API_KEY) -> Dict[str, Any]:
+def fetch_all_sources(ticker_ns: str, meta: Dict[str, Any]) -> Dict[str, Any]:
     name, adr = meta["name"], meta.get("adr")
     res: Dict[str, Any] = {"Company": name, "Ticker": ticker_ns}
     res.update(get_financials_yahoo(ticker_ns))
     res.update(get_macro_worldbank("IND"))
     res.update({"AlphaVantage": get_alpha_indicators(symbol=ticker_ns.replace(".NS",""))})
     res.update(get_sec_recent_filings(adr))
-    res.update(get_mca_data(meta.get("cin")))
     res.update(get_news_sentiment(name))
     res.update(get_press_release_sentiment(name))
     res.update(compute_score(res))
@@ -206,7 +181,7 @@ def fetch_all_sources(ticker_ns: str, meta: Dict[str, Any], api_key: str = MY_AP
 # -------------------------------
 all_data, results = [], []
 for ticker, meta in COMPANIES.items():
-    data = fetch_all_sources(ticker, meta, api_key=MY_API_KEY)
+    data = fetch_all_sources(ticker, meta)
     all_data.append(data)
     results.append({
         "Company": meta["name"],
@@ -220,10 +195,8 @@ for ticker, meta in COMPANIES.items():
     })
 
 os.makedirs("data", exist_ok=True)
-df_full = pd.DataFrame(all_data)
-df_full.to_csv("data/all_company_data_MCA.csv", index=False)
-df_scores = pd.DataFrame(results)
-df_scores.to_csv("data/credit_scores_enhanced.csv", index=False)
+pd.DataFrame(all_data).to_csv("data/all_company_data.csv", index=False)
+pd.DataFrame(results).to_csv("data/credit_scores.csv", index=False)
 
 # -------------------------------
 # Streamlit Dashboard
@@ -233,8 +206,8 @@ st.set_page_config(page_title="Credit Intelligence Dashboard", layout="wide")
 @st.cache_data
 def load_data():
     try:
-        df_full = pd.read_csv("data/all_company_data_MCA.csv")
-        df_scores = pd.read_csv("data/credit_scores_enhanced.csv")
+        df_full = pd.read_csv("data/all_company_data.csv")
+        df_scores = pd.read_csv("data/credit_scores.csv")
         return df_full, df_scores
     except: return pd.DataFrame(), pd.DataFrame()
 
@@ -270,18 +243,9 @@ st.dataframe(company_full.to_frame().reset_index().rename(columns={"index":"Fiel
 st.markdown("### 📈 Company Score Comparison")
 st.bar_chart(df_scores.set_index("Company")["Score"])
 
-st.markdown("### 🏛️ Compliance Snapshots")
-colA, colB = st.columns(2)
-with colA:
-    st.write("**SEC Filings (180 days):**")
-    st.write(company_full.get("SEC_recent_forms", []))
-with colB:
-    st.write("**MCA Status:**")
-    st.json({
-        "Status": company_full.get("MCA_Status","N/A"),
-        "PaidUpCapital": company_full.get("MCA_PaidUpCapital","N/A"),
-        "Date of Incorporation": company_full.get("MCA_DateIncorp","N/A")
-    })
+st.markdown("### 🏛️ Compliance Snapshots (SEC only)")
+st.write("**SEC Filings (180 days):**")
+st.write(company_full.get("SEC_recent_forms", []))
 
 st.markdown("---")
 st.caption("Built with ❤️ for IIT Kanpur Hackathon — Team Credit Intelligence")
