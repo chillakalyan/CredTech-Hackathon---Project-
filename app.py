@@ -1,26 +1,3 @@
-import os
-
-# -------------------------------
-# Alpha Vantage API Key
-# -------------------------------
-os.environ["ALPHAVANTAGE_API_KEY"] = "NJSOJQKBF4BHH7Y6"
-
-# -------------------------------
-# SEC EDGAR User-Agent
-# -------------------------------
-os.environ["SEC_USER_AGENT"] = "chillakalyan78@gmail.com HackathonApp/1.0"
-
-# -------------------------------
-# Optional: verify
-# -------------------------------
-print("Alpha Vantage Key set:", bool(os.getenv("ALPHAVANTAGE_API_KEY")))
-print("SEC User-Agent set:", os.getenv("SEC_USER_AGENT"))
-
-ALPHAVANTAGE_API_KEY = os.getenv("ALPHAVANTAGE_API_KEY", "NJSOJQKBF4BHH7Y6")
-SEC_UA = os.getenv("SEC_USER_AGENT", "chillakalyan78@gmail.com HackathonApp/1.0")
-#verify - OPtional
-print("Alpha Vantage Key:", ALPHAVANTAGE_API_KEY)
-print("SEC User-Agent:", SEC_UA)
 
 import os, time, json, math, datetime, urllib.parse, re
 from typing import Dict, Any, List
@@ -38,7 +15,7 @@ import requests
 # 0️⃣ Set API keys
 # -------------------------------
 # 579b464db66ec23bdd000001ca253fa7c51947b1572eb310a731e99d
-MY_API_KEY = "579b464db66ec23bdd0000016b699a9bd8da4d0e5653cc18839f110d"
+MY_API_KEY = "579b464db66ec23bdd0000016b699a9bd8da4d0e5653cc18839f110d"  #MCA api key from the Open Government Data Webiste
 os.environ["ALPHAVANTAGE_API_KEY"] = "NJSOJQKBF4BHH7Y6"
 os.environ["SEC_USER_AGENT"] = "chillakalyan78@gmail.com HackathonApp/1.0"
 ALPHAVANTAGE_API_KEY = os.getenv("ALPHAVANTAGE_API_KEY")
@@ -269,342 +246,152 @@ def fetch_all_sources(ticker_ns: str, meta: Dict[str, Any], api_key: str = MY_AP
     res.update(compute_score(res))
     return res
 
-
+# -------------------------------
+# Wrapper functions for clarity
+# -------------------------------
 
 # -------------------------------
-# 11️⃣ Main CSV-focused execution
+# 11️⃣ Main Execution with Detailed Output
 # -------------------------------
 if __name__ == "__main__":
     all_data = []
+    results = []
+
     for ticker, meta in COMPANIES.items():
-        print(f"Fetching data for {meta['name']}...")
+        print(f"\nFetching data for {meta['name']}...")
+
+        # ✅ Fetch everything
         data = fetch_all_sources(ticker, meta, api_key=MY_API_KEY)
         all_data.append(data)
 
-    df = pd.DataFrame(all_data)
-    print(df.head())
-
-    # Save to CSV only
-    df.to_csv("all_company_data_MCA.csv", index=False)
-    print("\n✅ Saved: all_company_data.csv")
-
-import requests
-
-url = "https://api.data.gov.in/resource/4dbe5667-7b6b-41d7-82af-211562424d9a"
-params = {
-    "api-key": "579b464db66ec23bdd00001ca253fa7c51947b1572eb310a731e99d",
-    "format": "json"
-}
-
-response = requests.get(url, params=params)
-print(response.status_code)
-print(response.json())
-
-# Libraries to install:
-# pip install yfinance feedparser textblob pandas pandas-datareader
-
-# import yfinance as yf
-# import feedparser
-# from textblob import TextBlob
-# import pandas as pd
-# import datetime
-# import pandas_datareader.data as web
-# import urllib.parse
-
-
-# def get_financial_data(ticker):
-#     stock = yf.Ticker(ticker)
-#     info = stock.info  # use .info, not fast_info
-#     data = {
-#         "Ticker": ticker,
-#         "MarketCap": info.get("marketCap", 0),
-#         "PE_Ratio": info.get("trailingPE", 0),
-#         "DebtToEquity": info.get("debtToEquity", 0),  # actual value
-#         "ProfitMargins": info.get("profitMargins", 0)  # actual value
-#     }
-#     return data
-
-
-# # -----------------------------
-# # Structured Data: FRED GDP
-# # -----------------------------
-# def get_macro_data():
-#     start = datetime.datetime(2020, 1, 1)
-#     end = datetime.datetime.today()
-#     try:
-#         gdp = web.DataReader('GDP', 'fred', start, end)
-#         latest_gdp = gdp.iloc[-1].values[0] if not gdp.empty else 0
-#     except:
-#         latest_gdp = 0
-#     return {"GDP": latest_gdp}
-
-# # -----------------------------
-# # Structured Data: Sector Signals
-# # -----------------------------
-# def get_sector_data(company):
-#     try:
-#         if company == "Reliance Industries":
-#             data = yf.Ticker("BZ=F").history(period="1mo")
-#             return {"BrentOil": float(data["Close"].iloc[-1])}
-#         elif company in ["Infosys", "Tata Consultancy Services"]:
-#             data = yf.Ticker("INR=X").history(period="1mo")
-#             return {"USDINR": float(data["Close"].iloc[-1])}
-#         elif company == "HDFC Bank":
-#             data = yf.Ticker("^NSEBANK").history(period="1mo")
-#             return {"BankIndex": float(data["Close"].iloc[-1])}
-#         else:
-#             return {}
-#     except:
-#         return {}
-
-
-# # -----------------------------
-# # Unstructured Data: News + Sentiment
-# # -----------------------------
-# import requests
-
-# def get_news_sentiment(company):
-#     query = urllib.parse.quote(company)
-#     feed_url = f"https://news.google.com/rss/search?q={query}"
-
-#     try:
-#         # use requests with headers to avoid 403/RemoteDisconnected
-#         headers = {"User-Agent": "Mozilla/5.0"}
-#         response = requests.get(feed_url, headers=headers, timeout=10)
-#         response.raise_for_status()
-
-#         feed = feedparser.parse(response.content)
-
-#         sentiments = []
-#         headlines = []
-#         for entry in feed.entries[:5]:  # top 5 headlines
-#             text = entry.title
-#             sentiment = TextBlob(text).sentiment.polarity
-#             sentiments.append(sentiment)
-#             headlines.append(text)
-
-#         avg_sentiment = sum(sentiments) / len(sentiments) if sentiments else 0
-#         return {"Sentiment": avg_sentiment, "Headlines": headlines}
-
-#     except Exception as e:
-#         print(f"[WARN] Could not fetch news for {company}: {e}")
-#         return {"Sentiment": 0, "Headlines": []}
-
-
-# # -----------------------------
-# # Unstructured Data: Press Releases (simulated)
-# # -----------------------------
-# def get_press_release_signal(company):
-#     # Simulated rule-based impact (placeholder)
-#     # In real system: scrape RSS/official filings
-#     dummy_data = {
-#         "Infosys": "Signed major AI deal",
-#         "Reliance Industries": "Raised debt for expansion",
-#         "HDFC Bank": "Issued bonus shares",
-#         "Tata Consultancy Services": "Announced layoffs due to automation"
-#     }
-#     headline = dummy_data.get(company, "No major update")
-#     sentiment = TextBlob(headline).sentiment.polarity
-#     return {"PressHeadline": headline, "PressSentiment": sentiment}
-
-
-# #     return round(score, 2)
-# def compute_credit_score(financials, macro, news, sector, press, company_name=""):
-#     # ✅ Base score increased for overall stronger rating
-#     # base = 85
-#     # score = base
-#     base = 75
-#     if company_name == "Reliance Industries":
-#         base = 85
-#     score = base
-
-
-#     # ---------------------------
-#     # Financial Health Adjustments
-#     # ---------------------------
-#     # Debt-to-Equity
-#     dte = financials.get("DebtToEquity") or 0
-#     if dte < 0.5:  # very low debt is good
-#         score += 10
-#     elif dte > 2:  # high debt is bad
-#         score -= 10
-#     else:  # moderate debt
-#         score += 5 - dte*2
-
-#     # PE Ratio
-#     pe = financials.get("PE_Ratio") or 0
-#     if pe > 25:
-#         score -= min((pe - 15)/2, 12)  # penalize high PE
-#     elif pe < 10:
-#         score += 5  # reward very low PE
-
-#     # Profit Margins
-#     pm = financials.get("ProfitMargins") or 0
-#     score += min(pm * 50, 15)  # higher weight than before
-
-#     # ---------------------------
-#     # Sentiment Adjustments
-#     # ---------------------------
-#     news_sent = news.get("Sentiment") or 0
-#     press_sent = press.get("PressSentiment") or 0
-#     score += max(-5, min(5, news_sent * 15))  # stronger impact
-#     score += max(-3, min(3, press_sent * 10))
-
-#     # ---------------------------
-#     # Macro GDP Adjustment
-#     # ---------------------------
-#     score += (float(macro.get("GDP") or 0) % 3)
-
-#     # ---------------------------
-#     # Sectoral Adjustments
-#     # ---------------------------
-#     if company_name == "Reliance Industries":
-#         # Brent Oil: higher is positive
-#         if "BrentOil" in sector:
-#             score += (sector["BrentOil"] - 70) / 5  # more sensitive
-#         # Shipping proxy: lower costs better
-#         if "ShippingProxyBDRY" in sector:
-#             score += max(0, 5 - (sector["ShippingProxyBDRY"] - 10)/5)
-#         # USD/INR
-#         if "USDINR" in sector:
-#             score += (sector["USDINR"] - 80) / 2
-
-#     elif company_name in ["Infosys", "Tata Consultancy Services"]:
-#         if "USDINR" in sector:
-#             score += (sector["USDINR"] - 80) / 5
-
-#     elif company_name == "HDFC Bank":
-#         if "BankIndex" in sector:
-#             score += (sector["BankIndex"] - 30000) / 5000
-
-#     # ---------------------------
-#     # Clamp the Score
-#     # ---------------------------
-#     # score = max(50, min(95, score))  # allow higher top scores
-#     score = max(60, min(90, score))
-
-#     # ---------------------------
-#     # Floor for Blue-Chip Companies
-#     # ---------------------------
-#     if company_name in ["Reliance Industries", "Infosys", "Tata Consultancy Services", "HDFC Bank"]:
-#         score = max(score, 70)
-
-#     return round(score, 2)
-
-
-# -----------------------------
-# Driver: Multi-Company Analysis
-# -----------------------------
-if __name__ == "__main__":
-    companies = {
-        "INFY.NS": "Infosys",
-        "RELIANCE.NS": "Reliance Industries",
-        "HDFCBANK.NS": "HDFC Bank",
-        "TCS.NS": "Tata Consultancy Services"
-    }
-
-    results = []
-    macro = get_macro_data()
-
-    for ticker, name in companies.items():
-        financials = get_financial_data(ticker)
-        news = get_news_sentiment(name)
-        sector = get_sector_data(name)
-        press = get_press_release_signal(name)
-
-        score = compute_credit_score(financials, macro, news, sector, press)
-
+        # ✅ Build compact scoring summary for CSV
         results.append({
-            "Company": name,
+            "Company": meta["name"],
             "Ticker": ticker,
-            "Score": score,
-            "Sentiment": news["Sentiment"],
-            "DebtToEquity": financials["DebtToEquity"],
-            "PE_Ratio": financials["PE_Ratio"],
-            "ProfitMargins": financials["ProfitMargins"],
-            "SectorData": sector,
-            "PressRelease": press["PressHeadline"]
+            "Score": data.get("Score", 0),
+            "Sentiment": data.get("News_sent", 0.0),
+            "DebtToEquity": data.get("DebtToEquity", 0.0),
+            "PE_Ratio": data.get("PE_Ratio", 0.0),
+            "ProfitMargins": data.get("ProfitMargins", 0.0),
+            "SectorData": {k: v for k, v in data.items() if k in ["USDINR","NSEBankIndex","BrentOil","ShippingProxyBDRY","StockPrice"]},
+            "PressRelease": data.get("PR_count", 0)
         })
 
+        # ✅ Pretty print details
         print("\n=== Credit Intelligence Platform: Enhanced Prototype ===")
-        print(f"Company: {name} ({ticker})")
-        print(f"Financial Data: {financials}")
-        print(f"Macro Data: {macro}")
-        print(f"Sector Data: {sector}")
-        print(f"News Sentiment: {news['Sentiment']:.2f}")
-        print("Recent Headlines:")
-        for h in news["Headlines"]:
-            print(" -", h)
-        print(f"Press Release: {press['PressHeadline']} (sent={press['PressSentiment']:.2f})")
-        print(f"👉 Final Credit Score: {score:.2f}/100")
+        print(f"Company: {meta['name']} ({ticker})")
+        print(f"Financial Data: {{'MarketCap': {data.get('MarketCap')}, 'PE_Ratio': {data.get('PE_Ratio')}, "
+              f"'DebtToEquity': {data.get('DebtToEquity')}, 'ProfitMargins': {data.get('ProfitMargins')}}}")
+        print(f"Macro Data: {{'FRED_GDP': {data.get('FRED_GDP')}, 'WB_CPI_YoY': {data.get('WB_CPI_YoY')}}}")
+        print(f"Sector Data: { {k:v for k,v in data.items() if k in ['USDINR','NSEBankIndex','BrentOil','ShippingProxyBDRY','StockPrice']} }")
+        print(f"News Sentiment: {data.get('News_sent',0.0):.2f} (from {data.get('News_count',0)} headlines)")
+        print(f"Press Releases: {data.get('PR_count',0)} (avg sent={data.get('PR_sent',0.0):.2f})")
+        print(f"SEC Filings (180d): {data.get('SEC_recent_180d','N/A')} forms: {data.get('SEC_recent_forms',[])}")
+        print(f"MCA Status: {data.get('MCA_Status','N/A')}, PaidUpCapital: {data.get('MCA_PaidUpCapital','N/A')}")
+        print(f"👉 Final Credit Score: {data.get('Score',0):.2f}/100")
 
-    # Save to CSV
-    print("DataFrame shape:", df.shape)
-    print("Columns:", df.columns.tolist())
-    print(df.head())
+    # ✅ Save raw enriched dataset
+    df_full = pd.DataFrame(all_data)
+    df_full.to_csv("data/all_company_data_MCA.csv", index=False)
+    print("\n✅ Saved raw enriched dataset: all_company_data_MCA.csv")
 
-    df = pd.DataFrame(results)
-    df.to_csv("credit_scores_enhanced.csv", index=False)
-    print("\n✅ Results saved to credit_scores_enhanced.csv")
+    # ✅ Save scoring summary
+    df_scores = pd.DataFrame(results)
+    df_scores.to_csv("data/credit_scores_enhanced.csv", index=False)
+    print("✅ Saved scoring summary: credit_scores_enhanced.csv")
 
-
-
+    # ✅ Quick preview
+    print("\n=== Credit Scores ===")
+    print(df_scores[["Company","Ticker","Score"]])
+    
+    
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-# st.title("✅ Streamlit is running")
 
+# ---------------------------------
+# Page Setup
+# ---------------------------------
+st.set_page_config(page_title="Credit Intelligence Dashboard", layout="wide")
 
-st.set_page_config(page_title="Company Dashboard", layout="wide")
-
-# -------------------------------
+# ---------------------------------
 # Load Data
-# -------------------------------
+# ---------------------------------
 @st.cache_data
 def load_data():
-    df = pd.read_csv("all_company_data_MCA.csv")
-    df.columns = df.columns.str.strip()  # clean whitespace in column names
-    return df
+    try:
+        df_full = pd.read_csv("all_company_data_MCA.csv")
+        df_scores = pd.read_csv("credit_scores_enhanced.csv")
+        df_full.columns = df_full.columns.str.strip()
+        df_scores.columns = df_scores.columns.str.strip()
+        return df_full, df_scores
+    except Exception as e:
+        st.error(f"Error loading data: {e}")
+        return pd.DataFrame(), pd.DataFrame()
 
-df = load_data()
+df_full, df_scores = load_data()
 
-st.title("📊 Company Analytics Dashboard")
-st.write("Data collected from Yahoo, AlphaVantage, SEC, MCA, World Bank, News, etc.")
+st.title("📊 Credit Intelligence Platform")
+st.write("**Data sources:** Yahoo Finance, Alpha Vantage, SEC EDGAR, MCA (API Setu), World Bank, News & PR sentiment")
 
-# -------------------------------
+if df_full.empty or df_scores.empty:
+    st.warning("No data found. Please run the backend script to generate CSV files.")
+    st.stop()
+
+# ---------------------------------
 # Sidebar - Company Selector
-# -------------------------------
-companies = df["Company"].dropna().unique().tolist()
-selected_company = st.sidebar.selectbox("Select a company", companies)
+# ---------------------------------
+companies = df_scores["Company"].dropna().unique().tolist()
+selected_company = st.sidebar.selectbox("🏢 Select a Company", companies)
 
-company_df = df[df["Company"] == selected_company].iloc[0]
+company_full = df_full[df_full["Company"] == selected_company].iloc[0]
+company_score = df_scores[df_scores["Company"] == selected_company].iloc[0]
 
-# -------------------------------
-# Display Key Info
-# -------------------------------
-st.subheader(f"🏢 {selected_company}")
-st.write(company_df)
+# ---------------------------------
+# Display Key Metrics
+# ---------------------------------
+st.subheader(f"🏢 {selected_company} — Credit Score: {round(company_score['Score'],2)}/100")
 
-# -------------------------------
-# Plots
-# -------------------------------
-col1, col2 = st.columns(2)
-
+col1, col2, col3 = st.columns(3)
 with col1:
-    st.metric("Market Cap", f"{company_df['MarketCap']:,}")
-    st.metric("P/E Ratio", round(company_df["PE_Ratio"], 2))
-    st.metric("Debt to Equity", round(company_df["DebtToEquity"], 2))
-
+    st.metric("Market Cap", f"{company_full['MarketCap']:,}")
+    st.metric("Debt to Equity", round(company_full["DebtToEquity"], 2))
 with col2:
-    st.metric("Profit Margins", round(company_df["ProfitMargins"], 2))
-    st.metric("News Sentiment", round(company_df["News_sent"], 2))
-    st.metric("PR Sentiment", round(company_df["PR_sent"], 2))
+    st.metric("P/E Ratio", round(company_full["PE_Ratio"], 2))
+    st.metric("Profit Margins", f"{round(company_full['ProfitMargins']*100, 2)}%")
+with col3:
+    st.metric("News Sentiment", round(company_full.get("News_sent",0), 2))
+    st.metric("PR Sentiment", round(company_full.get("PR_sent",0), 2))
 
-# -------------------------------
-# Score Visualization
-# -------------------------------
-fig, ax = plt.subplots()
-df.plot(kind="bar", x="Company", y="Score", ax=ax, color="skyblue", legend=False)
-ax.set_ylabel("Score (0-100)")
-st.pyplot(fig)
+# ---------------------------------
+# Detailed Data Section
+# ---------------------------------
+st.markdown("### 📑 Detailed Company Data")
+st.dataframe(company_full.to_frame().reset_index().rename(columns={"index":"Field",0:"Value"}))
 
+# ---------------------------------
+# Score Comparison Chart
+# ---------------------------------
+st.markdown("### 📈 Company Score Comparison")
+st.bar_chart(df_scores.set_index("Company")["Score"])
+
+# ---------------------------------
+# SEC & MCA Info
+# ---------------------------------
+st.markdown("### 🏛️ Compliance Snapshots")
+colA, colB = st.columns(2)
+with colA:
+    st.write("**SEC Filings (180 days):**")
+    st.write(company_full.get("SEC_recent_forms", []))
+with colB:
+    st.write("**MCA Status:**")
+    st.json({
+        "Status": company_full.get("MCA_Status","N/A"),
+        "PaidUpCapital": company_full.get("MCA_PaidUpCapital","N/A"),
+        "Date of Incorporation": company_full.get("MCA_DateIncorp","N/A")
+    })
+
+# ---------------------------------
+# Footer
+# ---------------------------------
+st.markdown("---")
+st.caption("Built with ❤️ for IIT Kanpur Hackathon — Team Credit Intelligence")
