@@ -107,7 +107,7 @@ cred-intel/
 │   │   ├── alpha_vantage.py        # Alpha Vantage fetch (volatility, indicators)
 │   │   ├── news.py                 # News + sentiment via RSS
 │   │   ├── sec_edgar.py            # SEC filings fetcher
-│   │   ├── worldbank.py            # World Bank + macro indicators
+│   │   ├── world_bank.py            # World Bank + macro indicators
 │   │   └── yahoo_finance.py        # Yahoo Finance fundamentals
 │   │   
 │   ├── model/
@@ -124,13 +124,19 @@ cred-intel/
 │   └── prototype.py                # Initial prototype script
 │
 ├── data/
-│   ├── snapshots/                  # Parquet snapshots by timestamp
-│   └── demo.csv                    # Small demo to run offline
+│   ├── all_company_data.csv        # Raw enriched dataset
+│   └── credit_scores.csv           # Scoring summary
 │
 ├── tests/
-│   ├── test_ingest.py              # Unit tests for ingest layer
 │   ├── test_features.py            # Unit tests for feature building
+│   ├── test_ingest.py              # Unit tests for ingest layer
 │   └── test_scorecard.py           # Unit tests for scorecard model
+│
+├── Sample_Screenshots/             # App demo screenshots
+│   ├── Screenshot_2025-08-22_213047.png
+│   ├── Screenshot_2025-08-22_213114.png
+│   ├── Screenshot_2025-08-22_213138.png
+│   └── Screenshot_2025-08-22_213149.png
 │
 ├── Dockerfile                      # Container spec
 ├── LICENSE                         # Open source license
