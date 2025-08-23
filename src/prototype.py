@@ -31,11 +31,11 @@ if __name__ == "__main__":
 
     # ✅ Save datasets
     df_full = pd.DataFrame(all_data)
-    df_full.to_csv("all_company_data_MCA.csv", index=False)
+    df_full.to_csv("data/all_company_data.csv", index=False)
     print("\n✅ Saved: all_company_data_MCA.csv")
 
     df_scores = pd.DataFrame(results)
-    df_scores.to_csv("credit_scores_enhanced.csv", index=False)
+    df_scores.to_csv("data/credit_scores.csv", index=False)
     print("✅ Saved: credit_scores_enhanced.csv")
 
     print("\n=== Credit Scores ===")
