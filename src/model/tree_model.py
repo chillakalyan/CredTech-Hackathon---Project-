@@ -1,25 +1,20 @@
-# tree_model.py
-# Optional decision tree + SHAP utils
-
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
-import shap
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
 
-class TreeModel:
-    def __init__(self, max_depth=3):
-        self.model = DecisionTreeClassifier(max_depth=max_depth)
+def train_tree_model(data_path):
+    df = pd.read_csv(data_path)
+    X = df[["DebtToEquity", "PE_Ratio", "ProfitMargins", "News_sent", "PR_sent"]]
+    y = (df["Score"] > 50).astype(int)   # Example: classify companies as High/Low risk
 
-    def fit(self, X: pd.DataFrame, y: pd.Series):
-        self.model.fit(X, y)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-    def predict(self, X: pd.DataFrame):
-        return self.model.predict(X)
+    model = DecisionTreeClassifier(max_depth=5, random_state=42)
+    model.fit(X_train, y_train)
 
-    def explain(self, X: pd.DataFrame):
-        """
-        Generate SHAP explanations.
-        """
-        explainer = shap.TreeExplainer(self.model)
-        shap_values = explainer.shap_values(X)
-        return shap_values
+    print("✅ Model trained")
+    print(classification_report(y_test, model.predict(X_test)))
+
+    return model
 
