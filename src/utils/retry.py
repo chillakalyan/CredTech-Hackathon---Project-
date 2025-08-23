@@ -1,26 +1,21 @@
-# retry.py
-# Retry with exponential backoff
+import time, requests
+from functools import wraps
 
-import time
-import functools
-
-def retry(max_attempts=3, delay=1, backoff=2):
-    """
-    Retry decorator with exponential backoff.
-    """
+def retry_request(max_retries=3, delay=2):
     def decorator(func):
-        @functools.wraps(func)
+        @wraps(func)
         def wrapper(*args, **kwargs):
-            attempts, wait = 0, delay
-            while attempts < max_attempts:
+            for attempt in range(max_retries):
                 try:
                     return func(*args, **kwargs)
                 except Exception as e:
-                    print(f"Error: {e}, retrying in {wait}s...")
-                    time.sleep(wait)
-                    wait *= backoff
-                    attempts += 1
-            raise Exception(f"Function {func.__name__} failed after {max_attempts} attempts")
+                    if attempt < max_retries - 1:
+                        time.sleep(delay)
+                    else:
+                        raise e
         return wrapper
     return decorator
 
+@retry_request(max_retries=3, delay=5)
+def safe_get(url, headers=None, timeout=15):
+    return requests.get(url, headers=headers, timeout=timeout)
