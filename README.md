@@ -1,3 +1,10 @@
+# 🚀 CredTech – AI-powered Credit Intelligence Platform  
+
+[![View Dashboard](https://img.shields.io/badge/Live-Dashboard-brightgreen?style=for-the-badge&logo=streamlit)](https://credtech-hackathon-project-xdokbheb2scyyendh4cq7v.streamlit.app/)
+
+👉 **Live Demo**: [Click here to open the Streamlit App](https://credtech-hackathon-project-xdokbheb2scyyendh4cq7v.streamlit.app/)
+
+
 # CredTech-Hackathon-Project
 CredTech Hackathon Project – Real-time Explainable Credit Intelligence Platform built for IIT Kanpur Hackathon. Ingests multi-source financial + macro + unstructured news data, generates issuer-level credit scores, and provides transparent feature-level explanations via an interactive Streamlit dashboard.
 
