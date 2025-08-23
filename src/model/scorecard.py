@@ -1,23 +1,15 @@
-# scorecard.py
-# Interpretable scoring functions
+import numpy as np
 
-import pandas as pd
+def compute_scorecard(prob):
+    # Convert probability (0–1) to credit score (0–100)
+    return int(np.round(prob * 100))
 
-def calculate_score(features: pd.DataFrame) -> pd.DataFrame:
-    """
-    Simple interpretable scorecard:
-    - Assigns points based on feature thresholds.
-    """
-    scores = []
-    for _, row in features.iterrows():
-        score = 0
-        if "Close" in row and row["Close"] > 0.5:
-            score += 10
-        if "GDP" in row and row["GDP"] > 2.0:
-            score += 15
-        if "Unemployment" in row and row["Unemployment"] < 5.0:
-            score += 10
-        scores.append(score)
-    features["score"] = scores
-    return features
+def interpret_score(score):
+    if score >= 75:
+        return "🟢 Low Risk"
+    elif score >= 50:
+        return "🟡 Medium Risk"
+    else:
+        return "🔴 High Risk"
+
 
