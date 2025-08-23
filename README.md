@@ -59,15 +59,43 @@ python -m textblob.download_corpora
 streamlit run src/app.py
 
 ### 8. Docker
-pending 
+We use a Dockerfile to containerize the entire project for portability and reproducibility. The image bundles all dependencies (`Python`, `pandas`, `numpy`, `yfinance`, `scikit-learn`, `streamlit`, etc.) and exposes the Streamlit app. This ensures that the project can run seamlessly across different environments, including local machines, cloud VMs, and hackathon submission servers.
+
+Key points:
+- `Dockerfile` defines the base image (Python 3.10+) and dependencies.
+- `run.sh` is provided as a helper script to build and run the container.
+- Supports deployment on Streamlit Cloud, Docker Hub, or any container orchestration system (Kubernetes, AWS ECS, etc.).
 
 ### 9. Testing
-pending
+The `tests/` folder contains unit tests to validate data ingestion, feature engineering, and the scoring logic:
+- `test_ingest.py` → Ensures all APIs (Yahoo Finance, Alpha Vantage, SEC, World Bank, News) return expected schemas.
+- `test_features.py` → Validates transformations like normalization, winsorization, and joins.
+- `test_scorecard.py` → Tests the scoring engine with synthetic and real company data.
+
+Tests are executed using `pytest`. This makes the system more reliable and ensures quick debugging during hackathons or deployments.
 
 ### 10. Trade-offs & Alternatives
-pending
+- **Data Sources**: We focused on free/public APIs (Yahoo Finance, Alpha Vantage, World Bank, SEC, MCA via API Setu). Paid APIs (e.g., Bloomberg, Refinitiv) provide more depth but were avoided due to cost.
+- **Modeling Approach**: Chose interpretable scorecards instead of complex deep learning for transparency. However, a tree-based model (XGBoost/LightGBM with SHAP explainability) is available for experimentation.
+- **Deployment**: Streamlit Cloud chosen for simplicity and hackathon-readiness. Alternatives include AWS, GCP, or Azure with CI/CD pipelines.
+- **Scoring**: Balanced between quantitative (financial ratios, volatility) and qualitative (sentiment, compliance). Could extend with graph-based risk networks.
 
-### 11.Roadmap
+### 11. Roadmap
+- **Short-term (Hackathon-ready)**
+  - Polish Streamlit dashboard (comparison charts, compliance summaries).
+  - Improve sentiment analysis with pretrained NLP models (e.g., FinBERT).
+  - Add caching + retry logic for API robustness.
+
+- **Mid-term (Pilot with Banks/Fintechs)**
+  - Expand to 50–100 companies across multiple sectors.
+  - Add alerting system for credit score changes.
+  - Provide CSV/Excel export and API endpoints for integration.
+
+- **Long-term (Production-Scale)**
+  - Integrate premium data providers (Bloomberg, Refinitiv) for high accuracy.
+  - Enable real-time streaming pipelines (Kafka, Spark Streaming).
+  - Build full ML-powered credit risk prediction with SHAP explanations.
+  - Scale into a SaaS platform for regulators, banks, and institutional investors.
 
 
 ## 📂 Repo Structure
@@ -76,35 +104,38 @@ pending
 cred-intel/
 ├── src/
 │   ├── ingest/
-│   │   ├── yfin.py              # Yahoo Finance fetch
-│   │   ├── fred.py              # Macro data (FRED + World Bank)
-│   │   ├── rss.py               # News + sentiment + event tags
-│   ├── features/
-│   │   └── build_features.py    # Normalization, winsorize, joins
+│   │   ├── alpha_vantage.py        # Alpha Vantage fetch (volatility, indicators)
+│   │   ├── news.py                 # News + sentiment via RSS
+│   │   ├── sec_edgar.py            # SEC filings fetcher
+│   │   ├── worldbank.py            # World Bank + macro indicators
+│   │   └── yahoo_finance.py        # Yahoo Finance fundamentals
+│   │   
 │   ├── model/
-│   │   ├── scorecard.py         # Interpretable scoring
-│   │   ├── tree_model.py        # Optional decision tree + SHAP utils
-│   │   └── explain.py           # SHAP + event deltas → text
+│   │   ├── explain.py              # SHAP + event deltas → text
+│   │   ├── scorecard.py            # Interpretable scoring engine
+│   │   └── tree_model.py           # Decision tree + SHAP utilities
+│   |
 │   ├── utils/
-│   │   ├── cache.py             # Last good value, staleness
-│   │   ├── retry.py             # Retry/backoff
-│   │   └── config.py            # API keys, refresh interval
-│   ├── app.py                   # Streamlit dashboard (main entry)
-│   └── pipeline.py              # Fetch-all-sources aggregator
+│   │   ├── cache.py                # Last good value, staleness
+│   │   ├── config.py               # API keys, refresh interval
+│   │   └── retry.py                # Retry/backoff logic
+│   |
+│   ├── pipeline.py                 # Fetch-all-sources aggregator
+│   └── prototype.py                # Initial prototype script
 │
 ├── data/
-│   ├── snapshots/               # Parquet snapshots by timestamp
-│   └── demo.csv                 # Small demo to run offline
+│   ├── snapshots/                  # Parquet snapshots by timestamp
+│   └── demo.csv                    # Small demo to run offline
 │
 ├── tests/
-│   ├── test_ingest.py
-│   ├── test_features.py
-│   └── test_scorecard.py
+│   ├── test_ingest.py              # Unit tests for ingest layer
+│   ├── test_features.py            # Unit tests for feature building
+│   └── test_scorecard.py           # Unit tests for scorecard model
 │
-├── Dockerfile                   # Container spec
-├── requirements.txt             # Dependencies
-├── README.md                    # Documentation
-├── PRESENTATION.pdf             # Submission deck
-└── run.sh                       # Helper script (docker run)
-
-
+├── Dockerfile                      # Container spec
+├── LICENSE                         # Open source license
+├── PRESENTATION.pptx               # Submission deck (slides)
+├── README.md                       # Documentation
+├── app.py                          # Streamlit dashboard (main entry)
+├── requirements.txt                # Dependencies
+└── run.sh                          # Helper script (docker run)
